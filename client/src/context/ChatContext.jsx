@@ -16,11 +16,12 @@ export const ChatContextProvider = ({ children, user }) => {
   const [sendTextMessageError, setSendTextMessageError] = useState(null);
   const [newMessage, setNewMessage] = useState(null);
   const [socket,setSocket] = useState(null);
+  const [onlineUsers,setOnlineUsers] = useState([]);
 
+  
 
 
   //inital socket
-
   useEffect(()=>{
     const newSocket = io("http://localhost:3000");
     setSocket(newSocket);
@@ -29,6 +30,30 @@ export const ChatContextProvider = ({ children, user }) => {
       newSocket.disconnect()
     }
   },[user]);
+
+
+
+
+
+  //add online users
+  useEffect(()=>{
+    if(socket === null) return;
+    socket.emit("addNewUser",user?._id);
+    socket.on("getOnlineUsers",(res)=>{
+      setOnlineUsers(res)
+    });
+
+    return () =>{
+      socket.off("getOnlineUsers")
+    };
+
+  },[socket]);
+
+
+
+
+
+
 
   useEffect(() => {
     const getUsers = async () => {
@@ -63,6 +88,10 @@ export const ChatContextProvider = ({ children, user }) => {
     getUsers();
   }, [userChats]); //when the user's chats changes(he has some new chat with someone), the useEffect will be triggerd
 
+
+
+
+
   useEffect(() => {
     const getUserChats = async () => {
       if (user?._id) {
@@ -82,6 +111,11 @@ export const ChatContextProvider = ({ children, user }) => {
     getUserChats();
   }, [user]); //every time the user changes this will rerender the component and we can get his chats
 
+
+
+
+
+
   useEffect(() => {
     const getMessages = async () => {
       setIsMessagesLoading(true);
@@ -100,6 +134,11 @@ export const ChatContextProvider = ({ children, user }) => {
 
     getMessages();
   }, [currentChat]);
+
+
+
+
+
 
   const sendTextMessage = useCallback(
     async (textMessage, sender, currentChatId, setTextMessage) => {
@@ -125,10 +164,19 @@ export const ChatContextProvider = ({ children, user }) => {
     []
   );
 
+
+
+
+
+
   const updateCurrentChat = useCallback((chat) => {
     setCurrentChat(chat);
   }, []);
 
+
+
+
+  
   const createChat = useCallback(async (firstId, secondId) => {
     const response = await postRequest(
       `${baseUrl}/chats`,
@@ -145,6 +193,11 @@ export const ChatContextProvider = ({ children, user }) => {
     setUserChats((prev) => [...prev, response]);
   }, []);
 
+
+
+
+
+
   return (
     <ChatContext.Provider
       value={{
@@ -159,6 +212,7 @@ export const ChatContextProvider = ({ children, user }) => {
         messagesError,
         isMessagesLoading,
         sendTextMessage,
+        onlineUsers
       }}
     >
       {children}
