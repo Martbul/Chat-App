@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import { getRequest, baseUrl, postRequest } from "../utils/services";
 
 export const ChatContext = createContext();
@@ -7,6 +7,40 @@ export const ChatContextProvider = ({ children, user }) => {
   const [userChats, setUserChats] = useState(null);
   const [userChatsError, setUserChatsError] = useState(null);
   const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+  const [potentialChats, setPotentialChats] = useState([]);
+
+  useEffect(() => {
+    const getUsers = async () => {
+      const response = await getRequest(`${baseUrl}/users`);
+
+      if (response.error) {
+        return console.log("Error fetching users", response);
+      }
+
+      const pChats = response.filter((u) => {
+        let isChatCreated = false;
+        if (user?._id === u._id) return false;
+
+        //checking if the user already has a chat with the first or the second member of the chat, if so the chat will not be out in the potentioal chat array
+        if (userChats) {
+          isChatCreated = userChats?.some((chat) => {
+            return chat.members[0] === u._id || chat.members[1] === u._id;
+          });
+        }
+
+        return !isChatCreated;
+        // the idea is that: if the user that is currently logged in hasn't got a chat with someone
+        //from the DB, that person will be added to pChats array and later listed as potential chat
+
+        //potentialChats is an array with all the users from our DB,
+        //exept the logged in user and the users from the chats he has already created
+      });
+
+      setPotentialChats(pChats);
+    };
+
+    getUsers();
+  }, [userChats]); //when the user's chats changes(he has some new chat with someone), the useEffect will be triggerd
 
   useEffect(() => {
     const getUserChats = async () => {
@@ -27,12 +61,30 @@ export const ChatContextProvider = ({ children, user }) => {
     getUserChats();
   }, [user]); //every time the user changes this will rerender the component and we can get his chats
 
+  const createChat = useCallback(async (firstId, secondId) => {
+    const response = await postRequest(
+      `${baseUrl}/chats`,
+      JSON.stringify({
+        firstId,
+        secondId,
+      }));
+
+      if(response.error){
+        return console.log('Error occured when creating new chat', response);
+      }
+
+
+      setUserChats((prev) => [...prev, response]);
+  }, []);   
+
   return (
     <ChatContext.Provider
       value={{
         userChats,
         isUserChatsLoading,
         userChatsError,
+        potentialChats,
+        createChat
       }}
     >
       {children}
