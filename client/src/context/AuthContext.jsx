@@ -27,7 +27,7 @@ export const AuthContextProvider = ({ children }) => {
     password: "",
   });
 
-console.log("loginInfo", loginInfo);
+//console.log("loginInfo", loginInfo);
 
 
   useEffect(()=>{
