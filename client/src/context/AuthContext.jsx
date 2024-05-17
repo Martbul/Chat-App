@@ -1,5 +1,5 @@
 import { createContext, useCallback, useEffect, useState } from "react";
-import { postRequest } from "../utils/services";
+import { postRequest} from "../utils/services";
 
 export const AuthContext = createContext();
 export const baseUrl = "http://localhost:5000/api";
