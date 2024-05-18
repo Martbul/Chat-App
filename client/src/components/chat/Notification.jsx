@@ -2,12 +2,13 @@ import { useContext, useState } from "react";
 import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 import { unreadNotificationsFunc } from "../../utils/unreadNotifications";
-import moment from "moment"
+import moment from "moment";
 
 const Notification = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useContext(AuthContext);
-  const { notifications, allUsers, userChats,markAllNotificationsAsRead } = useContext(ChatContext);
+  const { notifications, allUsers, userChats, markAllNotificationsAsRead ,markNotificationAsRead} =
+    useContext(ChatContext);
 
   const unreadNotifications = unreadNotificationsFunc(notifications);
   const modifiedNotifications = notifications.map((n) => {
@@ -44,15 +45,33 @@ const Notification = () => {
           <div className="notifications-box">
             <div className="notifications-header">
               <h3>Notifications</h3>
-              <div className="mark-as-read" onClick={()=>markAllNotificationsAsRead(notifications)}>Mark all as read</div>
+              <div
+                className="mark-as-read"
+                onClick={() => markAllNotificationsAsRead(notifications)}
+              >
+                Mark all as read
+              </div>
             </div>
-            {modifiedNotifications.length === 0 ? <span className="notifications">No notifications</span> : null}
-            {modifiedNotifications && modifiedNotifications.map((n, index)=>{
-                return <div key={index} className={n.isRead ? "notification" : "notification not-read"}>
+            {modifiedNotifications.length === 0 ? (
+              <span className="notifications">No notifications</span>
+            ) : null}
+            {modifiedNotifications &&
+              modifiedNotifications.map((n, index) => {
+                return (
+                  <div
+                    key={index}
+                    className={
+                      n.isRead ? "notification" : "notification not-read"
+                    }
+                    onClick={() =>markNotificationAsRead(n,userChats,user,notifications)}
+                  >
                     <span>{`${n.senderName} sent you a new message`}</span>
-                    <span className="notification-time">{moment(n.date).calendar()}</span>
-                </div>
-            })}
+                    <span className="notification-time">
+                      {moment(n.date).calendar()}
+                    </span>
+                  </div>
+                );
+              })}
           </div>
         ) : null}
       </div>
