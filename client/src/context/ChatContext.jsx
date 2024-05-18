@@ -18,6 +18,7 @@ export const ChatContextProvider = ({ children, user }) => {
   const [socket,setSocket] = useState(null);
   const [onlineUsers,setOnlineUsers] = useState([]);
   const [notifications,setNotifications] = useState([]);
+  const [allUsers,setAllUsers] = useState([]);
 
   console.log("notifications", notifications);
 
@@ -132,6 +133,7 @@ export const ChatContextProvider = ({ children, user }) => {
       });
 
       setPotentialChats(pChats);
+      setAllUsers(response)
     };
 
     getUsers();
@@ -262,7 +264,8 @@ export const ChatContextProvider = ({ children, user }) => {
         isMessagesLoading,
         sendTextMessage,
         onlineUsers,
-        notifications
+        notifications,
+        allUsers
       }}
     >
       {children}
