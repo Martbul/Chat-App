@@ -63,7 +63,10 @@ const Notification = () => {
                     className={
                       n.isRead ? "notification" : "notification not-read"
                     }
-                    onClick={() =>markNotificationAsRead(n,userChats,user,notifications)}
+                    onClick={() =>{
+                        markNotificationAsRead(n,userChats,user,notifications);
+                        setIsOpen(false);
+                    }}
                   >
                     <span>{`${n.senderName} sent you a new message`}</span>
                     <span className="notification-time">

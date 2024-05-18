@@ -3,10 +3,21 @@ import { useFetchRecipientUser } from "../../hooks/useFetchRecipient";
 import profilePicMen from "../../assets/profilePicMen.svg"
 import { ChatContext } from "../../context/ChatContext";
 import { useContext } from "react";
+import { unreadNotificationsFunc } from "../../utils/unreadNotifications";
 
 const UserChat = ({ chat, user }) => {
   const { recipientUser } = useFetchRecipientUser(chat, user);
-  const {onlineUsers} = useContext(ChatContext)
+  const {onlineUsers, notifications,markThisUserNotificationAsRead  } = useContext(ChatContext)
+
+  
+  const unreadNotifications = unreadNotificationsFunc(notifications)
+  //unreadNotifications contains ALL unread notifications, 
+  //but here you want to seperate the notifications per chat
+  const thisUserNotifications = unreadNotifications?.filter(
+    n => n.senderId === recipientUser?._id
+  )
+
+
   const isOnline = onlineUsers?.some((user) => user?.userId === recipientUser?._id)
 
   //console.log("recipient:", recipientUser);
@@ -16,6 +27,14 @@ const UserChat = ({ chat, user }) => {
       gap={3}
       className="user-card align-items-center p-2 justify-content-between"
       role="button"
+      onClick={() =>{
+        if(thisUserNotifications?.length !== 0){
+          markThisUserNotificationAsRead(
+            thisUserNotifications,
+            notifications
+          )
+        }
+      }}
     >
       <div className="d-flex">
         <div className="me-2">
@@ -31,8 +50,11 @@ const UserChat = ({ chat, user }) => {
         <div className="date">
             05/12/2023
         </div>
-        <div className="this-user-notifications">
-            2
+        <div className={thisUserNotifications?.length > 0 ?"this-user-notifications" : ""}>
+            {thisUserNotifications?.length > 0
+            ? thisUserNotifications?.length
+            :""
+          }
         </div>
         <span className={isOnline ?"user-online":''}></span>
       </div>
