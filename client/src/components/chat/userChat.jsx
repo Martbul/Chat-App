@@ -1,8 +1,13 @@
 import { Stack } from "react-bootstrap";
 import { useFetchRecipientUser } from "../../hooks/useFetchRecipient";
 import profilePicMen from "../../assets/profilePicMen.svg"
+import { ChatContext } from "../../context/ChatContext";
+import { useContext } from "react";
+
 const UserChat = ({ chat, user }) => {
   const { recipientUser } = useFetchRecipientUser(chat, user);
+  const {onlineUsers} = useContext(ChatContext)
+  const isOnline = onlineUsers?.some((user) => user?.userId === recipientUser?._id)
 
   //console.log("recipient:", recipientUser);
   return (
@@ -29,7 +34,7 @@ const UserChat = ({ chat, user }) => {
         <div className="this-user-notifications">
             2
         </div>
-        <span className="user-online"></span>
+        <span className={isOnline ?"user-online":''}></span>
       </div>
     </Stack>
   );
