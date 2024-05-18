@@ -17,6 +17,9 @@ export const ChatContextProvider = ({ children, user }) => {
   const [newMessage, setNewMessage] = useState(null);
   const [socket,setSocket] = useState(null);
   const [onlineUsers,setOnlineUsers] = useState([]);
+  const [notifications,setNotifications] = useState([]);
+
+  console.log("notifications", notifications);
 
   
 
@@ -67,7 +70,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
 
 
-  //receive message
+  //receive message + notification
   useEffect(()=>{
     if(socket === null) return;
 
@@ -77,8 +80,20 @@ export const ChatContextProvider = ({ children, user }) => {
       setMessages((prev) => [...prev, res]);
     })
 
+    socket.on("getNotification", res =>{
+      //if chat is open(current chat), then the notification will be marked as read and will not be shown
+      const isChatOpen = currentChat?.members.some((id) =>id === res.senderId);
+
+      if(isChatOpen) {
+          setNotifications(prev => [{...res, isRead:true}, ...prev])
+      }else{
+        setNotifications(prev => [res , ...prev])
+      }
+    }) 
+
     return () =>{
       socket.off("getMessage")
+      socket.off("getNotification")
     }
 
   },[socket,currentChat]);
@@ -246,7 +261,8 @@ export const ChatContextProvider = ({ children, user }) => {
         messagesError,
         isMessagesLoading,
         sendTextMessage,
-        onlineUsers
+        onlineUsers,
+        notifications
       }}
     >
       {children}
