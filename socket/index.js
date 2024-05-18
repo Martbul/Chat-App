@@ -21,6 +21,15 @@ io.on("connection", (socket) => {
 
     })
 
+    //add new message
+    socket.on("sendMessage",(message)=>{
+        const user = onlineUsers.find(user => user.userId === message.recipientId); //findinfg if the recipient is online
+        
+        if(user){
+            io.to(user.socketId).emit("getMessage",message);
+        }
+    })
+
     socket.on("disconnect", () => {
         onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
         io.emit("getOnlineUsers", onlineUsers);

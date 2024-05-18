@@ -53,6 +53,40 @@ export const ChatContextProvider = ({ children, user }) => {
 
 
 
+  //live message sending
+  useEffect(()=>{
+    if(socket === null) return;
+
+    const recipientId = currentChat?.members?.find((id) => id !== user?._id)
+    socket.emit("sendMessage",{...newMessage, recipientId})
+
+  },[newMessage]);
+
+
+
+
+
+
+  //receive message
+  useEffect(()=>{
+    if(socket === null) return;
+
+    socket.on("getMessage", res =>{
+      if(currentChat?._id !== res.chatId ) return //this prevents updating the wrong chat
+
+      setMessages((prev) => [...prev, res]);
+    })
+
+    return () =>{
+      socket.off("getMessage")
+    }
+
+  },[socket,currentChat]);
+
+
+
+
+
 
 
   useEffect(() => {
