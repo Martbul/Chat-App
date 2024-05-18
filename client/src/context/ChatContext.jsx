@@ -1,6 +1,6 @@
 import { createContext, useCallback, useEffect, useState } from "react";
 import { getRequest, baseUrl, postRequest } from "../utils/services";
-import {io} from "socket.io-client";
+import { io } from "socket.io-client";
 
 export const ChatContext = createContext();
 
@@ -15,95 +15,70 @@ export const ChatContextProvider = ({ children, user }) => {
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [sendTextMessageError, setSendTextMessageError] = useState(null);
   const [newMessage, setNewMessage] = useState(null);
-  const [socket,setSocket] = useState(null);
-  const [onlineUsers,setOnlineUsers] = useState([]);
-  const [notifications,setNotifications] = useState([]);
-  const [allUsers,setAllUsers] = useState([]);
+  const [socket, setSocket] = useState(null);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
 
   console.log("notifications", notifications);
 
-  
-
-
   //inital socket
-  useEffect(()=>{
+  useEffect(() => {
     const newSocket = io("http://localhost:3000");
     setSocket(newSocket);
 
-    return () =>{
-      newSocket.disconnect()
-    }
-  },[user]);
-
-
-
-
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [user]);
 
   //add online users
-  useEffect(()=>{
-    if(socket === null) return;
-    socket.emit("addNewUser",user?._id);
-    socket.on("getOnlineUsers",(res)=>{
-      setOnlineUsers(res)
+  useEffect(() => {
+    if (socket === null) return;
+    socket.emit("addNewUser", user?._id);
+    socket.on("getOnlineUsers", (res) => {
+      setOnlineUsers(res);
     });
 
-    return () =>{
-      socket.off("getOnlineUsers")
+    return () => {
+      socket.off("getOnlineUsers");
     };
-
-  },[socket]);
-
-
-
-
+  }, [socket]);
 
   //live message sending
-  useEffect(()=>{
-    if(socket === null) return;
+  useEffect(() => {
+    if (socket === null) return;
 
-    const recipientId = currentChat?.members?.find((id) => id !== user?._id)
-    socket.emit("sendMessage",{...newMessage, recipientId})
-
-  },[newMessage]);
-
-
-
-
-
+    const recipientId = currentChat?.members?.find((id) => id !== user?._id);
+    socket.emit("sendMessage", { ...newMessage, recipientId });
+  }, [newMessage]);
 
   //receive message + notification
-  useEffect(()=>{
-    if(socket === null) return;
+  useEffect(() => {
+    if (socket === null) return;
 
-    socket.on("getMessage", res =>{
-      if(currentChat?._id !== res.chatId ) return //this prevents updating the wrong chat
+    socket.on("getMessage", (res) => {
+      if (currentChat?._id !== res.chatId) return; //this prevents updating the wrong chat
 
       setMessages((prev) => [...prev, res]);
-    })
+    });
 
-    socket.on("getNotification", res =>{
+    socket.on("getNotification", (res) => {
       //if chat is open(current chat), then the notification will be marked as read and will not be shown
-      const isChatOpen = currentChat?.members.some((id) =>id === res.senderId);
+      const isChatOpen = currentChat?.members.some((id) => id === res.senderId);
 
-      if(isChatOpen) {
-          setNotifications(prev => [{...res, isRead:true}, ...prev])
-      }else{
-        setNotifications(prev => [res , ...prev])
+      if (isChatOpen) {
+        setNotifications((prev) => [{ ...res, isRead: true }, ...prev]);
+      } else {
+        setNotifications((prev) => [res, ...prev]);
       }
-    }) 
+    });
 
-    return () =>{
-      socket.off("getMessage")
-      socket.off("getNotification")
-    }
-
-  },[socket,currentChat]);
-
-
-
-
-
-
+    return () => {
+      socket.off("getMessage");
+      socket.off("getNotification");
+    };
+  }, [socket, currentChat]);
 
   useEffect(() => {
     const getUsers = async () => {
@@ -133,15 +108,11 @@ export const ChatContextProvider = ({ children, user }) => {
       });
 
       setPotentialChats(pChats);
-      setAllUsers(response)
+      setAllUsers(response);
     };
 
     getUsers();
   }, [userChats]); //when the user's chats changes(he has some new chat with someone), the useEffect will be triggerd
-
-
-
-
 
   useEffect(() => {
     const getUserChats = async () => {
@@ -162,11 +133,6 @@ export const ChatContextProvider = ({ children, user }) => {
     getUserChats();
   }, [user]); //every time the user changes this will rerender the component and we can get his chats
 
-
-
-
-
-
   useEffect(() => {
     const getMessages = async () => {
       setIsMessagesLoading(true);
@@ -185,11 +151,6 @@ export const ChatContextProvider = ({ children, user }) => {
 
     getMessages();
   }, [currentChat]);
-
-
-
-
-
 
   const sendTextMessage = useCallback(
     async (textMessage, sender, currentChatId, setTextMessage) => {
@@ -215,19 +176,10 @@ export const ChatContextProvider = ({ children, user }) => {
     []
   );
 
-
-
-
-
-
   const updateCurrentChat = useCallback((chat) => {
     setCurrentChat(chat);
   }, []);
 
-
-
-
-  
   const createChat = useCallback(async (firstId, secondId) => {
     const response = await postRequest(
       `${baseUrl}/chats`,
@@ -244,10 +196,13 @@ export const ChatContextProvider = ({ children, user }) => {
     setUserChats((prev) => [...prev, response]);
   }, []);
 
+  const markAllNotificationsAsRead = useCallback((notifications) => {
+    const mNotifications = notifications.map((n) => {
+      return { ...n, isRead: true };
+    });
 
-
-
-
+    setNotifications(mNotifications);
+  }, []);
 
   return (
     <ChatContext.Provider
@@ -265,7 +220,8 @@ export const ChatContextProvider = ({ children, user }) => {
         sendTextMessage,
         onlineUsers,
         notifications,
-        allUsers
+        allUsers,
+        markAllNotificationsAsRead
       }}
     >
       {children}
