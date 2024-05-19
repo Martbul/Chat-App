@@ -131,7 +131,7 @@ export const ChatContextProvider = ({ children, user }) => {
     };
 
     getUserChats();
-  }, [user]); //every time the user changes this will rerender the component and we can get his chats
+  }, [user,notifications]); //every time the user changes this will rerender the component and we can get his chats
 
   useEffect(() => {
     const getMessages = async () => {

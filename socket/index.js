@@ -1,6 +1,6 @@
 const { Server } = require("socket.io");
 //! when deplying you must change the cors
-const io = new Server({ cors: "http://localhost:5173" });
+const io = new Server({ cors: "https://664996df32b0973f0e6f9ec5--charming-tulumba-b7eb12.netlify.app/" });
 
 let onlineUsers = []
 

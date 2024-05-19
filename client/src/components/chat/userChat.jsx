@@ -4,10 +4,14 @@ import profilePicMen from "../../assets/profilePicMen.svg"
 import { ChatContext } from "../../context/ChatContext";
 import { useContext } from "react";
 import { unreadNotificationsFunc } from "../../utils/unreadNotifications";
+import { useFetchLatestMessage } from "../../hooks/useFetchLatestMessage";
+import moment from "moment";
+
 
 const UserChat = ({ chat, user }) => {
   const { recipientUser } = useFetchRecipientUser(chat, user);
-  const {onlineUsers, notifications,markThisUserNotificationAsRead  } = useContext(ChatContext)
+  const {onlineUsers, notifications,markThisUserNotificationAsRead  } = useContext(ChatContext);
+  const {latestMessage} = useFetchLatestMessage(chat)
 
   
   const unreadNotifications = unreadNotificationsFunc(notifications)
@@ -20,7 +24,17 @@ const UserChat = ({ chat, user }) => {
 
   const isOnline = onlineUsers?.some((user) => user?.userId === recipientUser?._id)
 
-  //console.log("recipient:", recipientUser);
+
+
+  const truncateText = (text) =>{
+    let shortText = text.substring(0,20);
+
+    if(text.length >20){
+      shortText = shortText+"...";
+    }
+    return shortText; 
+  }
+
   return (
     <Stack
       direction="horizontal"
@@ -43,12 +57,16 @@ const UserChat = ({ chat, user }) => {
         <div className="text-content">
           <div className="name">{recipientUser?.name}</div>
 
-          <div className="text">Ddummy text message</div>
+          <div className="text">{
+            latestMessage?.text &&(
+              <span>{truncateText(latestMessage?.text)}</span>
+            )
+          }</div>
         </div>
       </div>
       <div className="d-flex flex-column align-items-end">
         <div className="date">
-            05/12/2023
+           {moment(latestMessage?.createdAt).calendar()}
         </div>
         <div className={thisUserNotifications?.length > 0 ?"this-user-notifications" : ""}>
             {thisUserNotifications?.length > 0
