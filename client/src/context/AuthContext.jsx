@@ -2,7 +2,7 @@ import { createContext, useCallback, useEffect, useState } from "react";
 import { postRequest} from "../utils/services";
 
 export const AuthContext = createContext();
-export const baseUrl = "http://localhost:5000/api";
+export const baseUrl = "https://chat-app-nodejs-server.onrender.com/api";
 export const AuthContextProvider = ({ children }) => {
 
   const [user, setUser] = useState(null);
